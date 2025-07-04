@@ -8,66 +8,70 @@ import path from 'path';
 test('新智教伙伴 - 考试试卷批改端到端测试', async ({ page }) => {
 
   // --- 步骤 1: 登录系统 ---
+  console.log('1-1: 开始测试, 导航至登录页面');
   await page.goto('http://localhost/');
-  console.log('🚀 开始测试：访问登录页面');
   
   await page.locator('[placeholder="账号"]').fill('admin');
-  await page.waitForTimeout(3000);
   await page.locator('[placeholder="密码"]').fill('admin123');
   await page.getByRole('button', { name: '登 录' }).click();
+  console.log('1-2: 已填写凭据并点击登录');
   
   await page.waitForURL('**/index');
-  console.log('✅ 登录成功，已进入系统首页');
+  console.log('1-3: 登录成功, 已跳转至系统首页');
   
-  // --- 步骤 2: SPA 菜单导航 (定位器优化) ---
-  console.log('🧭 开始模拟用户点击菜单进行导航...');
+  // --- 步骤 2: SPA 菜单导航 ---
+  console.log('2-1: 开始通过菜单进行SPA导航');
   
-  // 点击父菜单 "考试管理"
   await page.getByText('考试管理').click();
-  console.log('   -> 点击了 "考试管理" 菜单');
+  console.log('2-2: 已点击父菜单 "考试管理"');
   
-  // 根据您提供的HTML，点击 "考试试卷批改"。
-  // getByRole('menuitem', ...) 是最符合无障碍和用户习惯的定位方式，非常稳健。
-  // 它能精确匹配 <li role="menuitem" ...>考试试卷批改</li> 这样的元素。
   await page.getByRole('menuitem', { name: '考试试卷批改' }).click();
-  console.log('   -> 点击了 "考试试卷批改" 子菜单');
+  console.log('2-3: 已点击子菜单 "考试试卷批改"');
 
   await page.waitForURL('**/exams/correction');
-  console.log('✅ 导航成功，当前页面路由: /exams/correction');
+  console.log('2-4: 导航成功, 当前URL已更新');
 
-  // --- 步骤 3 ~ 6: 核心测试流程 (保持不变) ---
+  // --- 步骤 3: 文件上传 ---
   const imagePath = path.join(process.cwd(), 'images', 'shijuan_1.jpg');
+  console.log(`3-1: 准备上传图片, 路径: ${imagePath}`);
+  
   const fileChooserPromise = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: '选择图片' }).click();
   const fileChooser = await fileChooserPromise;
   await fileChooser.setFiles(imagePath);
-  console.log(`✅ 成功上传图片: ${imagePath}`);
+  console.log('3-2: 图片已成功附加到文件选择器');
 
+  // --- 步骤 4: AI识别改卷 ---
   await page.getByRole('button', { name: '大模型识别' }).click();
-  console.log('✅ 已点击【大模型识别】按钮');
+  console.log('4-1: 已点击 [大模型识别] 按钮');
 
   await page.waitForTimeout(3000);
-  console.log('⏰ 已等待 3000ms');
+  console.log('4-2: 已等待 3000ms');
 
+  // --- 步骤 5: 执行批改 ---
   const correctButton = page.getByRole('button', { name: /批改/ });
-  console.log('⏳ 正在等待【批改】按钮变为可点击状态...');
+  console.log('5-1: 正在等待 [批改] 按钮变为可点击状态...');
+  
   await expect(correctButton).toBeEnabled({ timeout: 15000 });
-  console.log('✅ 【批改】按钮已启用!');
+  console.log('5-2: [批改] 按钮已启用');
   
   await correctButton.click();
-  console.log('🖱️ 已点击【批改】按钮');
+  console.log('5-3: 已点击 [批改] 按钮');
   
-  // --- 步骤 7: 验证最终结果 ---
-  console.log('🧐 正在等待最终批改结果显示...');
-  // const resultPanel = page.locator('.correction-result-panel');
-  const resultPanel = page.getByText('经检测过程无误，答案正确 题目总分5分，得分5分')
-  await expect(resultPanel).toBeVisible({ timeout: 100000 });
+  // --- 步骤 6: 结果验证 ---
+  console.log('6-1: 正在等待最终批改结果面板显示...');
+  const resultPanel = page.getByText('经检测过程无误，答案正确 题目总分5分，得分5分 y′=') // 请确保这是您通过 Inspector 找到的正确选择器
+  
+  await expect(resultPanel).toBeVisible({ timeout: 10000 });
+  console.log('6-2: 批改结果面板已在页面上可见');
+  
   await expect(resultPanel).toContainText('得分');
-  console.log('👍 结果内容验证通过');
+  console.log('6-3: 结果内容验证通过');
   
-  console.log('🎉🎉🎉 测试成功完成！');
+  // --- 步骤 7: 测试总结 ---
+  console.log('7-1: 测试所有步骤成功完成');
 
-  // --- 步骤 8: 最终等待 (新增优化) ---
-  console.log('👀 测试成功，页面将保持打开 3 秒钟以便观察...');
+  // --- 步骤 8: 结束前观察 ---
+  console.log('8-1: 测试结束, 页面将保持打开 3 秒以便观察');
   await page.waitForTimeout(3000);
 });
