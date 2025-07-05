@@ -2,9 +2,7 @@
 import { test, expect } from '@playwright/test';
 import path from 'path';
 
-/**
- * @description 针对 Vue SPA应用的考试试卷批改流程，最终优化版端到端测试
- */
+
 test('项目兼容性测试 - 考试试卷批改端到端测试', async ({ page }) => {
 
   // --- 步骤 1: 登录系统 ---
@@ -32,7 +30,7 @@ test('项目兼容性测试 - 考试试卷批改端到端测试', async ({ page 
   const fileChooser = await fileChooserPromise;
   await fileChooser.setFiles(imagePath);
 
-  // --- 步骤 4: AI识别 ---
+  // --- 步骤 4: 大模型识别 ---
   await page.getByRole('button', { name: '大模型识别' }).click();
 
   await page.waitForTimeout(3000);
